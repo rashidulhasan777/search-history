@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% block content %}
+    <div class="container">
+        <div class="content">
+
+            <form action="" method="POST">
+                {% csrf_token %}
+                <input type="text" name="search">
+                <button type="submit" >Search</button>
+            </form>
+            {% if result %}
+                <p>{{ result }}</p>
+            {% endif %}
+
+            <div x-data="{ searchData: [], selected: []  }" x-init="searchData = await (await fetch('/search-history/')).json()">
+                <template x-for="s in [...new Set(searchData.map(a=>a.search_query))] ">
+                    <div>
+                        <p x-text="`${s} (${searchData.filter(x => x.search_query == s).length} times found)`"></p>
+                        
+                    </div>
+
+                </template>
+                <hr>
+                {% render_field form.keywords autocomplete="off" @change="selected = changeSelected($el, selected)" %}
+
+                <hr>
+                
+                
+                
+
+                <div
+                x-data="{ 
+                dateStart: null,
+                dateEnd: null,
+                }"
+                >
+                <label for="start">
+                    Start date:
+                    <input
+                    name="dateStart"
+                    type="date"
+                    @change="dateStart = event.target.value;"
+                    />
+                </label>
+
+                <label for="dateEnd">
+                    – End date:
+                    <input
+                    name="dateEnd"
+                    type="date"
+                    x-model="dateEnd"
+                    @change="dateEnd = event.target.value;"
+                    />
+                </label>
+                <hr>
+                
+                
+                <template x-if="dateStart && dateEnd && selected.length">
+                    <template x-for="search in searchData.filter(x => selected.includes(x.search_query)).filter(a => new Date(a.searched_at)>=new Date(dateStart) && new Date(a.searched_at)<=new Date(dateEnd))">
+                        <div>
+                            <h4 x-text="`${search.search_query} -- ${search.searched_at}`"></h4>
+                            <p x-text="search.search_result"></p>
+                        </div>
+    
+                    </template>
+                </template>
+                <template x-if="!dateStart && !dateEnd && selected.length">
+                    <template x-for="search in searchData.filter(x => selected.includes(x.search_query))">
+                    <div>
+                        <h4 x-text="`${search.search_query} -- ${search.searched_at}`"></h4>
+                        <p x-text="search.search_result"></p>
+                    </div>
+
+                    </template>
+                </template>
+                <template x-if="dateStart && dateEnd && !selected.length">
+                    <template x-for="search in searchData.filter(a => new Date(a.searched_at)>=new Date(dateStart) && new Date(a.searched_at)<=new Date(dateEnd))">
+                        <div>
+                            <h4 x-text="`${search.search_query} -- ${search.searched_at}`"></h4>
+                            <p x-text="search.search_result"></p>
+                        </div>
+    
+                    </template>
+                </template>
+
+                
+                
+
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        function changeSelected(el, selected) {
+            const s = el.value
+            // console.log(s)
+            if (selected.includes(s)) {
+                return selected.filter(x => x != s)
+            } else {
+                return [...selected, s]
+            }
+        }
+       
+        
+    </script>
+{% endblock content %}
