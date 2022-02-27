@@ -1,0 +1,6 @@
+asgiref==3.5.0
+click==8.0.4
+Django==4.0.2
+django-widget-tweaks==1.4.12
+lorem-text==2.1
+sqlparse==0.4.2
